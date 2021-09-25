@@ -4,12 +4,13 @@
  */
 class CoinbaseExchange {
     
-    
-    
     //======================================================================
     // COMMON FUNCTIONS
     //======================================================================
     
+    /**
+     * Constructor for CoinbaseExchance
+     */
     public function __construct($key, $secret, $passphrase) {
         $this->key = $key;
         $this->secret = $secret;
