@@ -89,7 +89,7 @@ class CoinbaseExchange {
      *
      * @return  string  All account balances in JSON format.
      */
-    public function send_request($endpoint, $public = true, $method = 'get', $query_params = '', $body = false, $timestamp = false) {
+    private function send_request($endpoint, $public = true, $method = 'get', $query_params = '', $body = false, $timestamp = false) {
         $ch = curl_init();
 
         $headers = array('Content-Type:application/json', 'limit:1');
@@ -141,6 +141,21 @@ class CoinbaseExchange {
      */
     public function list_accounts() {
         $result = $this->send_request('accounts', false);
+        return $result;
+    }
+
+
+    /**
+     * Get information for a single account.
+     *
+     * @link    https://docs.pro.coinbase.com/#get-an-account
+     *
+     * @param   string  $account_id Account id
+     *
+     * @return  array   All account balances
+     */
+    public function get_account($account_id) {
+        $result = $this->send_request('accounts/' . $account_id, false);
         return $result;
     }
 
