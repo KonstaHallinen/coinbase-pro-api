@@ -192,20 +192,22 @@ class CoinbaseExchange {
      * @return  array   [[time, low, high, open, close, volume], [1415398768, 0.32, 4.2, 0.35, 4.2, 12.3], ... ]
      */
     public function get_historic_rates($product_id, $get_parameters = array('start' => false, 'end' => false, 'granularity' => self::DAY_IN_SECONDS)) {
-        $params = $this->format_parameters($get_parameters);
         $result = array();
-        $start = $get_parameters['start'] ?: strtotime('-4 week');
+        $start = $get_parameters['start'] ? strtotime($get_parameters['start']) : strtotime('-4 week');
         $end = $get_parameters['end'] ?: strtotime('now');
 
-        // TODO
         // Split large selections into multiple requests. If selection results in more than 300 data points, the request will be rejected.
-        /*if(array_key_exists('start', $get_parameters)) {
-            $start = $get_parameters['start']
+        /*if(($end - $start) / $get_parameters['granularity'] > 300) {
+            while() {
+                // TODO
+            }
         }*/
         
-        
-        // $result = $this->send_request('products/' . $product_id . '/candles' . $params);
-        return array($params, $start, $end);
+        $get_parameters['start'] = $this->format_timestamp(date('Y-m-d H:i:s', $start));
+        $get_parameters['end'] = $this->format_timestamp(date('Y-m-d H:i:s', $end));
+        $params = $this->format_parameters($get_parameters);
+        $result = $this->send_request('products/' . $product_id . '/candles' . $params);
+        return array($result);
     }
 
 
