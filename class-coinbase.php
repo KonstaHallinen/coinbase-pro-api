@@ -3,7 +3,7 @@
  * Coinbase API handler
  */
 class CoinbaseExchange {
-    
+
     // Time constants
     const MINUTE_IN_SECONDS = 60;
     const HOUR_IN_SECONDS   = self::MINUTE_IN_SECONDS * 60;
@@ -11,11 +11,11 @@ class CoinbaseExchange {
     const WEEK_IN_SECONDS   = self::DAY_IN_SECONDS * 7;
     const MONTH_IN_SECONDS  = self::DAY_IN_SECONDS * 30;
     const YEAR_IN_SECONDS   = self::DAY_IN_SECONDS * 365;
-    
-    
+
+
 
     //======================================================================
-    // COMMON FUNCTIONS
+    // COMMON
     //======================================================================
 
     /**
@@ -25,7 +25,7 @@ class CoinbaseExchange {
         $this->key = $key;
         $this->secret = $secret;
         $this->passphrase = $passphrase;
-        $this->base_url = 'https://api.pro.coinbase.com/';
+        $this->base_url = 'https://api.exchange.coinbase.com/';
     }
 
 
@@ -42,6 +42,71 @@ class CoinbaseExchange {
 
         return base64_encode(hash_hmac("sha256", $what, base64_decode($this->secret), true));
     }
+    
+
+    /**
+     * Send a request to the Coinbase API.
+     * 
+     * @param   string          $endpoint       API endpoint without leading slash (and optional query params if using get)
+     * @param   string          $method         GET / POST / DELETE
+     * @param   string          $query_params   Query parameters
+     * @param   string|array    $body           Request body
+     * @param   string          $timestamp      Timestamp in ISO 8601 format with microseconds
+     *
+     * @return  string  All account balances in JSON format.
+     */
+    private function send_request($endpoint, $public = true, $method = 'get', $query_params = '', $body = false, $timestamp = false) {
+        $curl = curl_init();
+
+        $headers = array('Content-Type:application/json', 'limit:1');
+        $method = strtoupper($method);
+
+        // Add signature to private API calls
+        if(!$public) {
+            $headers[] = 'CB-ACCESS-KEY:' . $this->key;
+            $headers[] = 'CB-ACCESS-TIMESTAMP:' . time();
+            $headers[] = 'CB-ACCESS-PASSPHRASE:' . $this->passphrase;
+
+            if($method == 'GET') {
+                $headers[] = 'CB-ACCESS-SIGN:' . $this->signature('/' . $endpoint);
+            }
+            else {
+                $headers[] = 'CB-ACCESS-SIGN:' . $this->signature('/' . $endpoint, $method, $body, $timestamp);
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
+            }
+        }
+
+        curl_setopt_array($curl, [
+            CURLOPT_URL => $this->base_url . $endpoint . $query_params,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_USERAGENT => 'API Explorer',
+            CURLOPT_CUSTOMREQUEST => $method,
+        ]);
+        
+        $result = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        
+        // cURL error
+        if($err) {
+            return array('error' => 'cURL error: ' . $err);
+        }
+        
+        $response = json_decode($result, true);
+        
+        // API error
+        if(array_key_exists('message', $response)) {
+            return array('error' => 'API error: ' . $response['message']);
+        }
+        
+        // Successful
+        return json_decode($result, true);
+    }
 
 
     /**
@@ -56,7 +121,14 @@ class CoinbaseExchange {
 
         foreach($params as $param => $value) {
             if($value !== null) {
-                $validated_params[] = $param . '=' . $value;
+                if(is_array($value)) {
+                    foreach($value as $str) {
+                        $validated_params[] = $param . '=' . $str;
+                    }
+                }
+                else {
+                    $validated_params[] = $param . '=' . $value;
+                }
             }
         }
 
@@ -77,57 +149,8 @@ class CoinbaseExchange {
         return $datetime->format('Y-m-d\TH:i:s.u');
     }
 
-
-    /**
-     * Send a request to the Coinbase API.
-     * 
-     * @param   string          $endpoint       API endpoint without leading slash (and optional query params if using get)
-     * @param   string          $method         GET / POST / DELETE
-     * @param   string          $query_params   Query parameters
-     * @param   string|array    $body           Request body
-     * @param   string          $timestamp      Timestamp in ISO 8601 format with microseconds
-     *
-     * @return  string  All account balances in JSON format.
-     */
-    private function send_request($endpoint, $public = true, $method = 'get', $query_params = '', $body = false, $timestamp = false) {
-        $ch = curl_init();
-
-        $headers = array('Content-Type:application/json', 'limit:1');
-        $method = strtoupper($method);
-
-        if(!$public) {
-            $headers[] = 'CB-ACCESS-KEY:' . $this->key;
-            $headers[] = 'CB-ACCESS-TIMESTAMP:' . time();
-            $headers[] = 'CB-ACCESS-PASSPHRASE:' . $this->passphrase;
-
-            if($method == 'GET') {
-                $headers[] = 'CB-ACCESS-SIGN:' . $this->signature('/' . $endpoint);
-            }
-            else {
-                $headers[] = 'CB-ACCESS-SIGN:' . $this->signature('/' . $endpoint, $method, $body, $timestamp);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-
-                if($method == 'POST') {
-                    curl_setopt($ch, CURLOPT_POST, true);
-                }
-                else if($method == 'DELETE') {
-                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
-                }
-            }
-        }
-
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'fake');
-        curl_setopt($ch, CURLOPT_URL, $this->base_url . $endpoint . $query_params);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);  
-        $result = curl_exec($ch);
-        curl_close($ch);
-
-        return json_decode($result, true);
-    }
-
-
-
+    
+    
     //======================================================================
     // ACCOUNTS
     //======================================================================
@@ -135,11 +158,11 @@ class CoinbaseExchange {
     /**
      * Get a list of trading accounts (and balances) from the profile of the API key.
      *
-     * @link    https://docs.pro.coinbase.com/#list-accounts
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
      *
      * @return  array  All account balances
      */
-    public function list_accounts() {
+    public function get_accounts() {
         $result = $this->send_request('accounts', false);
         return $result;
     }
@@ -148,7 +171,7 @@ class CoinbaseExchange {
     /**
      * Get information for a single account.
      *
-     * @link    https://docs.pro.coinbase.com/#get-an-account
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccount
      *
      * @param   string  $account_id Account id
      *
@@ -168,7 +191,7 @@ class CoinbaseExchange {
     /**
      * Get a list of available currency pairs for trading.
      * 
-     * @link    https://docs.pro.coinbase.com/#get-products
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
      *
      * @return  array
      */
@@ -181,14 +204,14 @@ class CoinbaseExchange {
     /**
      * Get a list of open orders for a product.
      * 
-     * @link    https://docs.pro.coinbase.com/#get-product-order-book
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
      *
      * @param   string  $product_id     Trade pair ID, like BTC-USD
      * @param   array   $get_parameters Get parameters for the query
      *
      * @return  array
      */
-    public function get_product_order_book($product_id, $get_parameters = array()) {
+    public function get_product_book($product_id, $get_parameters = array()) {
         $params = $this->format_parameters($get_parameters);
 
         $result = $this->send_request('products/' . $product_id . '/book' . $params);
@@ -199,14 +222,14 @@ class CoinbaseExchange {
     /**
      * Historic rates for a product. Rates are returned in grouped buckets based on requested granularity.
      * 
-     * @link    https://docs.pro.coinbase.com/#get-historic-rates
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
      *
      * @param   string  $product_id Trade pair ID, like BTC-USD
      * @param   array   $get_parameters Get parameters for the query
      *
      * @return  array   [[time, low, high, open, close, volume], [1415398768, 0.32, 4.2, 0.35, 4.2, 12.3], ... ]
      */
-    public function get_historic_rates($product_id, $get_parameters = array('start' => false, 'end' => false, 'granularity' => self::DAY_IN_SECONDS)) {
+    public function get_product_candles($product_id, $get_parameters = array('start' => false, 'end' => false, 'granularity' => self::DAY_IN_SECONDS)) {
         $result = array();
         $start = $get_parameters['start'] ? strtotime($get_parameters['start']) : strtotime('-4 week');
         $end = $get_parameters['end'] ?: strtotime('now');
@@ -217,7 +240,7 @@ class CoinbaseExchange {
                 // TODO
             }
         }*/
-        
+
         $get_parameters['start'] = $this->format_timestamp(date('Y-m-d H:i:s', $start));
         $get_parameters['end'] = $this->format_timestamp(date('Y-m-d H:i:s', $end));
         $params = $this->format_parameters($get_parameters);
@@ -230,14 +253,14 @@ class CoinbaseExchange {
     /**
      * Get a list of the latest trades for a product.
      * 
-     * @link    https://docs.pro.coinbase.com/#get-trades
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
      *
      * @param   string  $product_id Trade pair ID, like BTC-USD
      * @param   array   $get_parameters Get parameters for the query
      *
      * @return  array
      */
-    public function get_trades($product_id, $get_parameters = array()) {
+    public function get_product_trades($product_id, $get_parameters = array()) {
         $params = $this->format_parameters($get_parameters);
 
         $result = $this->send_request('products/' . $product_id . '/trades' . $params);
@@ -246,15 +269,15 @@ class CoinbaseExchange {
 
 
     /**
-     * Get 24 hr stats for the product. Volume is in base currency units. Open, high, low are in quote currency units.
+     * Gets 30 day and 24 hour stats for a product. Volume is in base currency units. Open, high, low are in quote currency units.
      * 
-     * @link    https://docs.pro.coinbase.com/#get-24hr-stats
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductstats
      *
      * @param   string  $product_id Trade pair ID, like BTC-USD
      *
      * @return  array
      */
-    public function get_24hr_stats($product_id) {
+    public function get_product_stats($product_id) {
         $result = $this->send_request('products/' . $product_id . '/stats');
         return $result;
     }
@@ -268,19 +291,22 @@ class CoinbaseExchange {
     /**
      * Get a list of open and un-settled orders.
      * 
-     * @link    https://docs.pro.coinbase.com/#get-open-orders
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
      *
-     * @param   string  $product_id Trade pair ID, like BTC-USD
-     * @param   string  $limit      Amount of orders, default 1000
+     * @param   array   $get_parameters Get parameters for the query
      *
      * @return  array
      */
-    public function list_orders($product_id = false, $limit = false) {
-        $params = $this->$this->format_parameters(array(
-            'limit' => $limit
-        ));
+    public function get_orders($get_parameters = array()) {
+        if(!array_key_exists('limit', $get_parameters)) {
+            $get_parameters['limit'] = 100;
+        }
+        if(!array_key_exists('status', $get_parameters)) {
+            $get_parameters['status'] = array('all');
+        }
 
-        $result = $this->send_request('orders/' . $params, false);
+        $params = $this->format_parameters($get_parameters);
+        $result = $this->send_request('orders' . $params, false);
         return $result;
     }
 }

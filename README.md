@@ -2,16 +2,17 @@ A PHP class for communicating with the [Coinbase Pro API](https://docs.pro.coinb
 ## Disclaimer
 **Please note that the script doesn't yet have a function for every Coinbase API method**. This is a work in progress and will be updated as my own project develops.
 ## Usage
-Refer to the official API documentation for more detailed information about the possible parameters and returned values.
+Refer to the official API documentation for more detailed information about the possible query parameters and returned values. Each function is named after the documentation URL, so for example [Get product trades](https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades) would use a function called get_product_trades and so on.
+Here is a crude example:
 
     // Include the file
     require_once('class-coinbase.php');
 	
-	// You can leave the variables empty if you only need to use public methods.
+	// Initialise the class. You can leave the variables empty if you only need to use public methods.
     $coinbase = new CoinbaseExchange('Your API key', 'Your API secret', 'Your API passphrase');
 
-	// Functions are named identically to the API endpoints and GET parameters can be passed using an array.
-    $trades = $coinbase->get_trades('USDC-EUR', array('limit' => '2'));
+	// Call a function. GET parameters can be added to the API call by using an array.
+    $trades = $coinbase->get_product_trades('USDC-EUR', array('limit' => '2'));
     
     /* Returned JSON is automatically converted to an array so var_dump($trades); would print something like this:
     array(2) {
