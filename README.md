@@ -1,8 +1,14 @@
-A PHP class for communicating with the [Coinbase Pro API](https://docs.pro.coinbase.com/).
+
+# Coinbase API PHP class
+A single class PHP client made for communicating with the [Coinbase Pro API](https://docs.cloud.coinbase.com/exchange/reference/).
+
 ## Disclaimer
-**Please note that the script doesn't yet have a function for every Coinbase API method**. This is a work in progress and will be updated as my own project develops.
+**This is an unofficial project and made without any cooperation with the Coinbase staff.**
+
+Please note that the script doesn't yet have a function for every Coinbase API method. This is a work in progress and will be updated as my own project develops.
 ## Usage
 Refer to the official API documentation for more detailed information about the possible query parameters and returned values. Each function is named after the documentation URL, so for example [Get product trades](https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades) would use a function called get_product_trades and so on.
+
 Here is a crude example:
 
     // Include the file
@@ -14,7 +20,7 @@ Here is a crude example:
 	// Call a function. GET parameters can be added to the API call by using an array.
     $trades = $coinbase->get_product_trades('USDC-EUR', array('limit' => '2'));
     
-    /* Returned JSON is automatically converted to an array so var_dump($trades); would print something like this:
+    /* Returned JSON is automatically converted in to an array so var_dump($trades); would print something like this:
     array(2) {
       [0]=>
       array(5) {
@@ -43,3 +49,18 @@ Here is a crude example:
         string(4) "sell"
       }
     } */
+
+
+Errors will also be returned as arrays. There are basically two types of errors that could occur:
+
+	// API errors. Caused most likely by wrong credentials or missing a required parameter. Example:
+	array(1) {
+	  ["error"]=>
+	  string(24) "API error: Unauthorized."
+	}
+	
+    // cURL errors. Caused most likely by connection issues. Example:
+    array(1) {
+	  ["error"]=>
+	  string(61) "cURL error: Could not resolve host: api.exchange.coinbase.com"
+	}

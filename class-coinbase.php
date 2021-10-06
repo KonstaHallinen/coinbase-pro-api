@@ -58,7 +58,10 @@ class CoinbaseExchange {
     private function send_request($endpoint, $public = true, $method = 'get', $query_params = '', $body = false, $timestamp = false) {
         $curl = curl_init();
 
-        $headers = array('Content-Type:application/json', 'limit:1');
+        $headers = array(
+            'Accept: application/json',
+            'Content-Type:application/json'
+        );
         $method = strtoupper($method);
 
         // Add signature to private API calls
@@ -199,7 +202,21 @@ class CoinbaseExchange {
         $result = $this->send_request('products');
         return $result;
     }
-
+    
+    
+    /**
+     * Get a list of available currency pairs for trading.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
+     *
+     * @param   string  $product_id     Trade pair ID, like BTC-USD
+     *
+     * @return  array
+     */
+    public function get_product($product_id) {
+        $result = $this->send_request('products/' . $product_id);
+        return $result;
+    }
 
     /**
      * Get a list of open orders for a product.
@@ -249,6 +266,35 @@ class CoinbaseExchange {
     }
 
 
+    /**
+     * Gets 30 day and 24 hour stats for a product. Volume is in base currency units. Open, high, low are in quote currency units.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductstats
+     *
+     * @param   string  $product_id Trade pair ID, like BTC-USD
+     *
+     * @return  array
+     */
+    public function get_product_stats($product_id) {
+        $result = $this->send_request('products/' . $product_id . '/stats');
+        return $result;
+    }
+
+
+    /**
+     * Gets snapshot information about the last trade (tick), best bid/ask and 24h volume.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
+     *
+     * @param   string  $product_id Trade pair ID, like BTC-USD
+     *
+     * @return  array
+     */
+    public function get_product_ticker($product_id) {
+        $result = $this->send_request('products/' . $product_id . '/ticker');
+        return $result;
+    }
+
 
     /**
      * Get a list of the latest trades for a product.
@@ -268,26 +314,26 @@ class CoinbaseExchange {
     }
 
 
-    /**
-     * Gets 30 day and 24 hour stats for a product. Volume is in base currency units. Open, high, low are in quote currency units.
-     * 
-     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductstats
-     *
-     * @param   string  $product_id Trade pair ID, like BTC-USD
-     *
-     * @return  array
-     */
-    public function get_product_stats($product_id) {
-        $result = $this->send_request('products/' . $product_id . '/stats');
-        return $result;
-    }
-
-
-
     //======================================================================
     // ORDERS
     //======================================================================
 
+    /**
+     * Get a list of open and un-settled orders.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
+     *
+     * @param   array   $get_parameters Get parameters for the query
+     *
+     * @return  array
+     */
+    public function get_fills($get_parameters = array()) {
+        $params = $this->format_parameters($get_parameters);
+        $result = $this->send_request('fills' . $params, false);
+        return $result;
+    }
+
+    
     /**
      * Get a list of open and un-settled orders.
      * 
@@ -307,6 +353,23 @@ class CoinbaseExchange {
 
         $params = $this->format_parameters($get_parameters);
         $result = $this->send_request('orders' . $params, false);
+        return $result;
+    }
+
+    
+    /**
+     * https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
+     *
+     * @param   string  $order_id   The order ID
+     * @param   array   $get_parameters Get parameters for the query
+     *
+     * @return  array
+     */
+    public function get_order($order_id, $get_parameters = array()) {
+        $params = $this->format_parameters($get_parameters);
+        $result = $this->send_request('orders/' . $order_id . $params, false);
         return $result;
     }
 }
