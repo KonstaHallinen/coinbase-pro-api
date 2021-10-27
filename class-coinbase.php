@@ -248,8 +248,8 @@ class CoinbaseExchange {
      */
     public function get_product_candles($product_id, $get_parameters = array('start' => false, 'end' => false, 'granularity' => self::DAY_IN_SECONDS)) {
         $result = array();
-        $start = $get_parameters['start'] ? strtotime($get_parameters['start']) : strtotime('-4 week');
-        $end = $get_parameters['end'] ?: strtotime('now');
+        $start = !empty($get_parameters['start']) ? strtotime($get_parameters['start']) : strtotime('-4 week');
+        $end = !empty($get_parameters['end']) ? strtotime($get_parameters['end']) : strtotime('now');
 
         // Split large selections into multiple requests. If selection results in more than 300 data points, the request will be rejected.
         /*if(($end - $start) / $get_parameters['granularity'] > 300) {
@@ -258,11 +258,12 @@ class CoinbaseExchange {
             }
         }*/
 
-        $get_parameters['start'] = $this->format_timestamp(date('Y-m-d H:i:s', $start));
-        $get_parameters['end'] = $this->format_timestamp(date('Y-m-d H:i:s', $end));
+        $get_parameters['start'] = $this->format_timestamp(gmdate('Y-m-d H:i:s', $start));
+        $get_parameters['end'] = $this->format_timestamp(gmdate('Y-m-d H:i:s', $end));
         $params = $this->format_parameters($get_parameters);
+        
         $result = $this->send_request('products/' . $product_id . '/candles' . $params);
-        return array($result);
+        return $result;
     }
 
 
