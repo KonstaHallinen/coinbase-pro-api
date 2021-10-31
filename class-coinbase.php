@@ -20,23 +20,33 @@ class CoinbaseExchange {
 
     /**
      * Constructor for CoinbaseExchance
+     *
+     * @param   string  $key        API key
+     * @param   string  $secret     API secret
+     * @param   string  $passphrase API passphrase
+     * @param   bool    $sandbox    Use the sandbox API. Requires test credentials: https://public.sandbox.pro.coinbase.com/profile/api
      */
-    public function __construct($key, $secret, $passphrase) {
+    public function __construct($key, $secret, $passphrase, $sandbox = false) {
         $this->key = $key;
         $this->secret = $secret;
         $this->passphrase = $passphrase;
-        $this->base_url = 'https://api.exchange.coinbase.com/';
+        $this->base_url = $sandbox ? 'https://api-public.sandbox.exchange.coinbase.com/' : 'https://api.exchange.coinbase.com/';
     }
 
 
     /**
      * Create the Coinbase signature required in every API call.
      *
+     * @param   string  $endpoint   The API endpoint without the leading slash
+     * @param   string  $method     HTTP request method
+     * @param   array   $body       Request body
+     * @param   string  $timestamp  Epoch timestamp
+     *
      * @return  string  Base 64 encoded signature string for CB-ACCESS-SIGN header.
      */
     private function signature($endpoint = '', $method = 'GET', $body = '', $timestamp = false) {
         $body = is_array($body) ? json_encode($body) : $body;
-        $timestamp = $timestamp ? $timestamp : time();
+        $timestamp = $timestamp ?: time();
 
         $what = $timestamp . $method . $endpoint . $body;
 
@@ -47,15 +57,14 @@ class CoinbaseExchange {
     /**
      * Send a request to the Coinbase API.
      * 
-     * @param   string          $endpoint       API endpoint without leading slash (and optional query params if using get)
-     * @param   string          $method         GET / POST / DELETE
-     * @param   string          $query_params   Query parameters
-     * @param   string|array    $body           Request body
-     * @param   string          $timestamp      Timestamp in ISO 8601 format with microseconds
+     * @param   string  $endpoint       API endpoint without leading slash (and optional query params if using get)
+     * @param   string  $method         GET / POST / DELETE
+     * @param   array   $body           Request body
+     * @param   string  $timestamp      Timestamp in ISO 8601 format with microseconds
      *
      * @return  string  All account balances in JSON format.
      */
-    private function send_request($endpoint, $public = true, $method = 'get', $query_params = '', $body = false, $timestamp = false) {
+    private function send_request($endpoint, $public = true, $method = 'get', $body = array(), $timestamp = false) {
         $curl = curl_init();
 
         $headers = array(
@@ -66,8 +75,10 @@ class CoinbaseExchange {
 
         // Add signature to private API calls
         if(!$public) {
+            $timestamp = $timestamp ?: time(); // TODO make sure if epoch is always good for POST requests
+            
             $headers[] = 'CB-ACCESS-KEY:' . $this->key;
-            $headers[] = 'CB-ACCESS-TIMESTAMP:' . time();
+            $headers[] = 'CB-ACCESS-TIMESTAMP:' . $timestamp;
             $headers[] = 'CB-ACCESS-PASSPHRASE:' . $this->passphrase;
 
             if($method == 'GET') {
@@ -75,12 +86,12 @@ class CoinbaseExchange {
             }
             else {
                 $headers[] = 'CB-ACCESS-SIGN:' . $this->signature('/' . $endpoint, $method, $body, $timestamp);
-                curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
+                curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($body));
             }
         }
 
         curl_setopt_array($curl, [
-            CURLOPT_URL => $this->base_url . $endpoint . $query_params,
+            CURLOPT_URL => $this->base_url . $endpoint,
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
@@ -320,7 +331,7 @@ class CoinbaseExchange {
     //======================================================================
 
     /**
-     * Get a list of open and un-settled orders.
+     * Get a list of fills. A fill is a partial or complete match on a specific order.
      * 
      * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
      *
@@ -357,9 +368,25 @@ class CoinbaseExchange {
         return $result;
     }
 
+
+    /**
+     * Create an order.
+     * NOTE: The API doc
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
+     *
+     * @param   array   $body   Body for the query
+     *
+     * @return  array
+     */
+    public function create_order($body) {
+        $result = $this->send_request('orders', false, 'post', $body);
+        return $result;
+    }
+
     
     /**
-     * https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
+     * Get a single order by id.
      * 
      * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
      *

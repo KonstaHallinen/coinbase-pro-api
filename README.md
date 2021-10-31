@@ -7,9 +7,15 @@ A single class PHP client made for communicating with the [Coinbase Pro API](htt
 
 Please note that the script doesn't yet have a function for every Coinbase API method. This is a work in progress and will be updated as my own project develops.
 ## Usage
-Refer to the official API documentation for more detailed information about the possible query parameters and returned values. Each function is named after the documentation URL, so for example [Get product trades](https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades) would use a function called get_product_trades and so on.
+Refer to the official API documentation for more detailed information about the possible query parameters and returned values. Almost every* function is named after the documentation URL, so for example [Get product trades (getproducttrades)](https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades) would use a function called get_product_trades and so on.
 
-Here is a crude example:
+*Exceptions:
+| Function | Doc URL | Description |
+|--|--|--|
+| `create_order()` | postorders | Create a new order |
+
+
+### Here is a basic code example:
 
     // Include the file
     require_once('class-coinbase.php');
