@@ -113,13 +113,18 @@ class CoinbaseExchange {
         
         $response = json_decode($result, true);
         
+        // Unknown error, most likely the API is having internal errors and is returning nonsense
+        if(!is_array($response)) {
+            return array('error' => 'Unknown error: return value makes no sense. Error string: ' + strval($response));
+        }
+        
         // API error
         if(array_key_exists('message', $response)) {
             return array('error' => 'API error: ' . $response['message']);
         }
         
         // Successful
-        return json_decode($result, true);
+        return $response;
     }
 
 
@@ -398,6 +403,21 @@ class CoinbaseExchange {
     public function get_order($order_id, $get_parameters = array()) {
         $params = $this->format_parameters($get_parameters);
         $result = $this->send_request('orders/' . $order_id . $params, false);
+        return $result;
+    }
+
+    
+    /**
+     * Cancel a single open order by order id.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
+     *
+     * @param   string  $order_id   The order ID
+     *
+     * @return  array
+     */
+    public function cancel_order($order_id) {
+        $result = $this->send_request('orders/' . $order_id, false, 'delete');
         return $result;
     }
 }
