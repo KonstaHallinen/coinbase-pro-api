@@ -1,6 +1,10 @@
 <?php
 /**
  * Coinbase API handler
+ *
+ * @author      Konsta Hallinen
+ * @license     MIT (see LICENSE)
+ * @link        https://github.com/KonstaHallinen/coinbase-api-php-class
  */
 class CoinbaseExchange {
 
@@ -35,7 +39,7 @@ class CoinbaseExchange {
 
 
     /**
-     * Create the Coinbase signature required in every API call.
+     * Create the Coinbase signature required in every private API call.
      *
      * @param   string  $endpoint   The API endpoint without the leading slash
      * @param   string  $method     HTTP request method
@@ -44,7 +48,7 @@ class CoinbaseExchange {
      *
      * @return  string  Base 64 encoded signature string for CB-ACCESS-SIGN header.
      */
-    private function signature($endpoint = '', $method = 'GET', $body = '', $timestamp = false) {
+    private function signature($endpoint, $method, $body = '', $timestamp = false) {
         $body = is_array($body) ? json_encode($body) : $body;
         $timestamp = $timestamp ?: time();
 
@@ -81,8 +85,8 @@ class CoinbaseExchange {
             $headers[] = 'CB-ACCESS-TIMESTAMP:' . $timestamp;
             $headers[] = 'CB-ACCESS-PASSPHRASE:' . $this->passphrase;
 
-            if($method == 'GET') {
-                $headers[] = 'CB-ACCESS-SIGN:' . $this->signature('/' . $endpoint);
+            if($method == 'GET' || $method == 'DELETE') {
+                $headers[] = 'CB-ACCESS-SIGN:' . $this->signature('/' . $endpoint, $method);
             }
             else {
                 $headers[] = 'CB-ACCESS-SIGN:' . $this->signature('/' . $endpoint, $method, $body, $timestamp);
@@ -113,9 +117,9 @@ class CoinbaseExchange {
         
         $response = json_decode($result, true);
         
-        // Unknown error, most likely the API is having internal errors and is returning nonsense
+        // Returned value is not JSON (for example the order deletion returns a plain string that is not in JSON format)
         if(!is_array($response)) {
-            return array('error' => 'Unknown error: return value makes no sense. Error string: ' + strval($response));
+            return array($result);
         }
         
         // API error

@@ -12,8 +12,8 @@ Refer to the official API documentation for more detailed information about the 
 *Exceptions:
 | Function | Doc URL | Description |
 |--|--|--|
-| `create_order()` | postorders | Create a new order |
-| `cancel_order()` | deleteorder | Cancel a single open order |
+| `create_order` | postorders | Create a new order |
+| `cancel_order` | deleteorder | Cancel a single open order |
 
 
 ### Here is a basic code example:
@@ -58,7 +58,7 @@ Refer to the official API documentation for more detailed information about the 
     } */
 
 
-Errors will also be returned as arrays. There are basically three types of errors that could occur:
+Errors will also be returned as arrays. There are basically two types of errors that could occur:
 
 	// API error. Caused most likely by wrong credentials or missing a required parameter. Example:
 	array(1) {
@@ -71,6 +71,3 @@ Errors will also be returned as arrays. There are basically three types of error
 	  ["error"]=>
 	  string(61) "cURL error: Could not resolve host: api.exchange.coinbase.com"
 	}
-	
-    // Unknown error. Caused most likely because the API is having internal errors and is returning nonsense. This is most likely not useful, but the error is returned like this: 
-    array('error' => 'Unknown error: return value makes no sense. Error string: ' + strval($response));
