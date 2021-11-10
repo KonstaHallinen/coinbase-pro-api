@@ -183,7 +183,7 @@ class CoinbaseExchange {
      *
      * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
      *
-     * @return  array  All account balances
+     * @return  array
      */
     public function get_accounts() {
         $result = $this->send_request('accounts', false);
@@ -198,10 +198,172 @@ class CoinbaseExchange {
      *
      * @param   string  $account_id Account id
      *
-     * @return  array   All account balances
+     * @return  array
      */
     public function get_account($account_id) {
         $result = $this->send_request('accounts/' . $account_id, false);
+        return $result;
+    }
+
+
+    /**
+     * List the holds of an account that belong to the same profile as the API key.
+     *
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountholds
+     *
+     * @param   string  $account_id Account id
+     * @param   array   $get_parameters Get parameters for the query
+     *
+     * @return  array
+     */
+    public function get_account_holds($account_id, $get_parameters = array()) {
+        $params = $this->format_parameters($get_parameters);
+        
+        $result = $this->send_request('accounts/' . $account_id . '/holds' . $params, false);
+        return $result;
+    }
+
+
+    /**
+     * List ledger activity for an account.
+     *
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
+     *
+     * @param   string  $account_id Account id
+     * @param   array   $get_parameters Get parameters for the query
+     *
+     * @return  array
+     */
+    public function get_account_ledger($account_id, $get_parameters = array()) {
+        $params = $this->format_parameters($get_parameters);
+        
+        $result = $this->send_request('accounts/' . $account_id . '/ledger' . $params, false);
+        return $result;
+    }
+
+
+    /**
+     * Lists past withdrawals and deposits for an account.
+     *
+     * https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+     *
+     * @param   string  $account_id Account id
+     * @param   array   $get_parameters Get parameters for the query
+     *
+     * @return  array
+     */
+    public function get_account_transfers($account_id, $get_parameters = array()) {
+        $params = $this->format_parameters($get_parameters);
+        
+        $result = $this->send_request('accounts/' . $account_id . '/transfers' . $params, false);
+        return $result;
+    }
+
+    
+
+    //======================================================================
+    // ORDERS
+    //======================================================================
+
+    /**
+     * Get a list of fills. A fill is a partial or complete match on a specific order.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
+     *
+     * @param   array   $get_parameters Get parameters for the query
+     *
+     * @return  array
+     */
+    public function get_fills($get_parameters = array()) {
+        $params = $this->format_parameters($get_parameters);
+        $result = $this->send_request('fills' . $params, false);
+        return $result;
+    }
+    
+    
+    /**
+     * Cancel all open orders
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
+     *
+     * @param   array   $get_parameters Get parameters for the query
+     *
+     * @return  array
+     */
+    public function cancel_orders($get_parameters = array()) {
+        $params = $this->format_parameters($get_parameters);
+        $result = $this->send_request('orders' . $params, false, 'delete');
+        return $result;
+    }
+
+    
+    /**
+     * Get a list of open and un-settled orders.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+     *
+     * @param   array   $get_parameters Get parameters for the query
+     *
+     * @return  array
+     */
+    public function get_orders($get_parameters = array()) {
+        if(!array_key_exists('limit', $get_parameters)) {
+            $get_parameters['limit'] = 100;
+        }
+        if(!array_key_exists('status', $get_parameters)) {
+            $get_parameters['status'] = array('all');
+        }
+
+        $params = $this->format_parameters($get_parameters);
+        $result = $this->send_request('orders' . $params, false);
+        return $result;
+    }
+
+
+    /**
+     * Create an order.
+     * NOTE: The API doc
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
+     *
+     * @param   array   $body   Body for the query
+     *
+     * @return  array
+     */
+    public function create_order($body) {
+        $result = $this->send_request('orders', false, 'post', $body);
+        return $result;
+    }
+
+    
+    /**
+     * Get a single order by id.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
+     *
+     * @param   string  $order_id   The order ID
+     * @param   array   $get_parameters Get parameters for the query
+     *
+     * @return  array
+     */
+    public function get_order($order_id, $get_parameters = array()) {
+        $params = $this->format_parameters($get_parameters);
+        $result = $this->send_request('orders/' . $order_id . $params, false);
+        return $result;
+    }
+
+    
+    /**
+     * Cancel a single open order by order id.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
+     *
+     * @param   string  $order_id   The order ID
+     *
+     * @return  array
+     */
+    public function cancel_order($order_id) {
+        $result = $this->send_request('orders/' . $order_id, false, 'delete');
         return $result;
     }
 
@@ -331,97 +493,6 @@ class CoinbaseExchange {
         $params = $this->format_parameters($get_parameters);
 
         $result = $this->send_request('products/' . $product_id . '/trades' . $params);
-        return $result;
-    }
-
-
-    //======================================================================
-    // ORDERS
-    //======================================================================
-
-    /**
-     * Get a list of fills. A fill is a partial or complete match on a specific order.
-     * 
-     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
-     *
-     * @param   array   $get_parameters Get parameters for the query
-     *
-     * @return  array
-     */
-    public function get_fills($get_parameters = array()) {
-        $params = $this->format_parameters($get_parameters);
-        $result = $this->send_request('fills' . $params, false);
-        return $result;
-    }
-
-    
-    /**
-     * Get a list of open and un-settled orders.
-     * 
-     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
-     *
-     * @param   array   $get_parameters Get parameters for the query
-     *
-     * @return  array
-     */
-    public function get_orders($get_parameters = array()) {
-        if(!array_key_exists('limit', $get_parameters)) {
-            $get_parameters['limit'] = 100;
-        }
-        if(!array_key_exists('status', $get_parameters)) {
-            $get_parameters['status'] = array('all');
-        }
-
-        $params = $this->format_parameters($get_parameters);
-        $result = $this->send_request('orders' . $params, false);
-        return $result;
-    }
-
-
-    /**
-     * Create an order.
-     * NOTE: The API doc
-     * 
-     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
-     *
-     * @param   array   $body   Body for the query
-     *
-     * @return  array
-     */
-    public function create_order($body) {
-        $result = $this->send_request('orders', false, 'post', $body);
-        return $result;
-    }
-
-    
-    /**
-     * Get a single order by id.
-     * 
-     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
-     *
-     * @param   string  $order_id   The order ID
-     * @param   array   $get_parameters Get parameters for the query
-     *
-     * @return  array
-     */
-    public function get_order($order_id, $get_parameters = array()) {
-        $params = $this->format_parameters($get_parameters);
-        $result = $this->send_request('orders/' . $order_id . $params, false);
-        return $result;
-    }
-
-    
-    /**
-     * Cancel a single open order by order id.
-     * 
-     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
-     *
-     * @param   string  $order_id   The order ID
-     *
-     * @return  array
-     */
-    public function cancel_order($order_id) {
-        $result = $this->send_request('orders/' . $order_id, false, 'delete');
         return $result;
     }
 }

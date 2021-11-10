@@ -14,6 +14,7 @@ Refer to the official API documentation for more detailed information about the 
 |--|--|--|
 | `create_order` | postorders | Create a new order |
 | `cancel_order` | deleteorder | Cancel a single open order |
+| `cancel_orders` | deleteorders | Cancel all open orders |
 
 
 ### Here is a basic code example:
