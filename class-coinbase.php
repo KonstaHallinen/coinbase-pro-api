@@ -1,6 +1,6 @@
 <?php
 /**
- * Coinbase API handler
+ * PHP client for Coinbase Exchange REST API
  *
  * @author      Konsta Hallinen
  * @license     MIT (see LICENSE)
@@ -260,6 +260,58 @@ class CoinbaseExchange {
     }
 
     
+    
+    //======================================================================
+    // COINBASE ACCOUNTS
+    //======================================================================
+
+    /**
+     * Get all the user's available Coinbase wallets (These are the wallets/accounts that are used for buying and selling on www.coinbase.com)
+     *
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcoinbaseaccounts
+     *
+     * @return  array
+     */
+    public function get_coinbase_accounts() {
+        $result = $this->send_request('coinbase-accounts', false);
+        return $result;
+    }
+
+
+    /**
+     * Generate a one-time crypto address for depositing crypto.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+     * @see     get_coinbase_accounts()
+     *
+     * @param   string  $account_id Coinabse account id
+     *
+     * @return  array
+     */
+    public function generate_crypto_address($account_id) {
+        $result = $this->send_request('coinbase-accounts/' . $account_id . '/addresses', false, 'post');
+        return $result;
+    }
+
+    
+
+    //======================================================================
+    // FEES
+    //======================================================================
+
+    /**
+     * Gets a list of all of the current user's profiles.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
+     *
+     * @return  array
+     */
+    public function get_fees() {
+        $result = $this->send_request('fees');
+        return $result;
+    }
+
+
 
     //======================================================================
     // ORDERS
@@ -492,6 +544,86 @@ class CoinbaseExchange {
         $params = $this->format_parameters($get_parameters);
 
         $result = $this->send_request('products/' . $product_id . '/trades' . $params);
+        return $result;
+    }
+
+    
+
+    //======================================================================
+    // PROFILES
+    //======================================================================
+
+    /**
+     * Gets a list of all of the current user's profiles.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getprofiles
+     *
+     * @param   array   $get_parameters Get parameters for the query
+     *
+     * @return  array
+     */
+    public function get_profiles($get_parameters = array()) {
+        $params = $this->format_parameters($get_parameters);
+
+        $result = $this->send_request('profiles' . $params, false);
+        return $result;
+    }
+
+    /**
+     * Create a new profile.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postprofile
+     *
+     * @param   array|string    $body   Profile name
+     *
+     * @return  array
+     */
+    public function create_profile($body) {
+        if(is_string($body)) {
+            $body = array(
+                'name' => $body
+            );
+        }
+        
+        $result = $this->send_request('profiles', false, 'post', $body);
+        return $result;
+    }
+
+    
+    /**
+     * Gets a list of all of the current user's profiles.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getprofiles
+     *
+     * @param   array   $profile_id     Profile / portfolio ID
+     * @param   array   $get_parameters Get parameters for the query
+     *
+     * @return  array
+     */
+    public function get_profile($profile_id, $get_parameters = array()) {
+        $params = $this->format_parameters($get_parameters);
+
+        $result = $this->send_request('profiles/' . $profile_id . $params, false);
+        return $result;
+    }
+
+    
+
+    //======================================================================
+    // USERS
+    //======================================================================
+
+    /**
+     * Gets exchange limits information for a single user.
+     * 
+     * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getprofiles
+     *
+     * @param   array   $user_id    User ID
+     *
+     * @return  array
+     */
+    public function get_user_exchange_limits($user_id) {
+        $result = $this->send_request('users/' . $user_id . '/exchange-limits', false);
         return $result;
     }
 }

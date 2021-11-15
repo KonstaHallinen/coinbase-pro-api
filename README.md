@@ -72,3 +72,75 @@ Errors will also be returned as arrays. There are basically two types of errors 
 	  ["error"]=>
 	  string(61) "cURL error: Could not resolve host: api.exchange.coinbase.com"
 	}
+    
+## Methods
+List of supported methods. Gives a rough idea of project completeness.
+
+Accounts
+- [x] Get all accounts for a profile
+- [x] Get a single account by id
+- [x] Get a single account's holds
+- [x] Get a single account's ledger
+- [x] Get a single account's transfers
+
+Coinbase accounts
+- [x] Get all Coinbase wallets
+- [x] Generate crypto address
+
+Conversions
+- [ ] Convert currency
+- [ ] Get a conversion
+
+Currencies
+- [ ] Get all known currencies
+- [ ] Get a currency
+
+Transfers
+- [ ] Deposit from Coinbase account
+- [ ] Deposit from payment method
+- [ ] Get all payment methods
+- [ ] Get all transfers
+- [ ] Get a single transfer
+- [ ] Withdraw to Coinbase account
+- [ ] Withdraw to crypto address
+- [ ] Get fee estimate for crypto withdrawal
+- [ ] Withdraw to payment method
+
+Fees
+- [x] Get fees
+
+Orders
+- [x] Get all fills
+- [x] Get all orders
+- [x] Cancel all orders
+- [x] Create a new order
+- [x] Get single order
+- [x] Cancel an order
+
+Coinbase price oracle
+- [ ] Get signed prices
+
+Products
+- [x] Get all known trading pairs
+- [x] Get single product
+- [x] Get product book
+- [x] Get product candles
+- [x] Get product stats
+- [x] Get product ticker
+- [x] Get product trades
+
+Profiles
+- [x] Get profiles
+- [x] Create a profile
+- [ ] Transfer funds between profiles
+- [x] Get profile by id
+- [ ] Rename a profile
+- [ ] Delete a profile
+
+Reports
+- [ ] Get all reports
+- [ ] Create a report
+- [ ] Get a report
+
+Users
+- [x] Get user exchange limits
