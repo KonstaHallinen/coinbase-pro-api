@@ -322,7 +322,6 @@ class CoinbaseExchange {
 
     /**
      * Create an order.
-     * NOTE: The API doc
      * 
      * @link    https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
      *
