@@ -1,7 +1,7 @@
 # DEPRECATED
 Coinbase has [announced](https://www.coinbase.com/blog/hello-advanced-trade-goodbye-coinbase-pro) that they will close the Coinbase Pro and the Exchange REST API. You should migrate to [Advanced Trade API](https://docs.cloud.coinbase.com/advanced-trade-api/docs/rest-api-overview) instead.
 
-# Coinbase API PHP class
+# Coinbase Pro API PHP client
 A single class PHP client made for communicating with the [Coinbase Pro API](https://docs.cloud.coinbase.com/exchange/reference/).
 
 ## Disclaimer
