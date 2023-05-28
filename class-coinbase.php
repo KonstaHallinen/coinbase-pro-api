@@ -5,6 +5,10 @@
  * @author      Konsta Hallinen
  * @license     MIT (see LICENSE)
  * @link        https://github.com/KonstaHallinen/coinbase-api-php-class
+ * 
+ * @deprecated  Coinbase has announced (https://www.coinbase.com/blog/hello-advanced-trade-goodbye-coinbase-pro)
+ *              that they will close the Coinbase Pro and the Exchange REST API.
+ *              You should migrate to Advanced Trade API instead: https://docs.cloud.coinbase.com/advanced-trade-api/docs/rest-api-overview 
  */
 class CoinbaseExchange {
 
@@ -62,11 +66,11 @@ class CoinbaseExchange {
      * Send a request to the Coinbase API.
      * 
      * @param   string  $endpoint       API endpoint without leading slash (and optional query params if using get)
-     * @param   string  $method         GET / POST / DELETE
+     * @param   string  $method         GET|POST|DELETE
      * @param   array   $body           Request body
      * @param   string  $timestamp      Timestamp in ISO 8601 format with microseconds
      *
-     * @return  string  All account balances in JSON format.
+     * @return  array   The response
      */
     private function send_request($endpoint, $public = true, $method = 'get', $body = array(), $timestamp = false) {
         $curl = curl_init();
