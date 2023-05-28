@@ -4,7 +4,7 @@
  *
  * @author      Konsta Hallinen
  * @license     MIT (see LICENSE)
- * @link        https://github.com/KonstaHallinen/coinbase-api-php-class
+ * @link        https://github.com/KonstaHallinen/coinbase-pro-api
  * 
  * @deprecated  Coinbase has announced (https://www.coinbase.com/blog/hello-advanced-trade-goodbye-coinbase-pro)
  *              that they will close the Coinbase Pro and the Exchange REST API.
